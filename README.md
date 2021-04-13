@@ -8,7 +8,7 @@ The KTest binary is structured as follows,
 3. Symbolic arguments
 4. KTest objects.
 
-The following sections describes the detailed structure. Each new section starts at byte 0 here, but since they follow each other the arguments start at byte 8 where the header left off. But it is easier to describe the structure this way.
+The following sections describes the detailed structure. Each new section starts at byte 0 here, but they follow each other. E.g. the Arguments section start at byte 8 where the Header section left off. But it is easier to describe the structure this way.
 
 ### Header
 The header describes the magic number which is either "KTEST" or "BOUT/n". Then followed
@@ -54,4 +54,10 @@ This is repeated for (NUMOBJECTS) times.
 | BYTE        | NAME   | DESCRIPTION    | LENGTH       |
 |-------------|--------|----------------|--------------|
 | 0..4        | SIZE   | Size of object | 4 bytes      |
-| 4..(4+SIZE) | OBJECT | An object      | (SIZE) bytes |        
+| 4..(4+SIZE) | OBJECT | An object      | (SIZE) bytes |
+
+## License
+Licensed under BSD-3. See [LICENSE](/LICENSE).
+
+### Contributing
+Issues and pull requests are welcomed! See [CONTRIBUTING.md](/CONTRIBUTING.md).
