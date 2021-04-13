@@ -36,7 +36,7 @@
 //! | BYTE      | NAME   | DESCRIPTION      | LENGTH       |
 //! |-----------|--------|------------------|--------------|
 //! | 0..4      | SIZE   | Size of argument | 4 bytes      |
-//! | 4..(SIZE) | ARG    | An argument      | (SIZE) bytes |        
+//! | 4..(SIZE) | ARG    | An argument      | (SIZE) bytes |
 //!
 //! ## Symbolic arguments
 //! Describes symbolic arguments.
@@ -61,11 +61,11 @@
 //! | BYTE      | NAME   | DESCRIPTION    | LENGTH       |
 //! |-----------|--------|----------------|--------------|
 //! | 0..4      | SIZE   | Size of object | 4 bytes      |
-//! | 4..(SIZE) | OBJECT | An object      | (SIZE) bytes |        
+//! | 4..(SIZE) | OBJECT | An object      | (SIZE) bytes |
 
 extern crate nom;
 
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Result};
 use nom::{
     branch::alt,
     bytes::complete::{tag, take},
@@ -75,9 +75,12 @@ use nom::{
     sequence::tuple,
     IResult,
 };
+use serde::{Deserialize, Serialize};
+
+type KTestTuple = (u32, Vec<String>, u32, u32, u32, Vec<KTestObject>);
 
 /// Contains information about the generated test vector on a symbolic object.
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct KTestObject {
     /// The name given to the symbolic object when calling `klee_make_symbolic`
     pub name: String,
@@ -88,7 +91,7 @@ pub struct KTestObject {
 }
 
 /// A representation of the KTest file format.
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct KTest {
     /// KTest file format version
     pub version: u32,
@@ -105,26 +108,44 @@ pub struct KTest {
 
 /// Parses a .ktest file and returns a KTest. Will return an error if any
 /// parts of the binary is illegal.
-pub fn parse_ktest_binary(input: &'static [u8]) -> Result<KTest> {
-    let (input, _magic) = magic_number(input).context("Invalid magic number")?;
-    let (input, version) = extract_be_u32(input).context("Failed to parse file version")?;
-    let (input, args) = extract_arguments(input).context("Failed to extract arguments")?;
-    // Version <= 2 does not support symb args
-    let (input, (sym_argvs, sym_argv_len)) = if version > 2 {
-        extract_sym_args(input).context("Failed to extract symbolic arguments")?
-    } else {
-        (input, (0, 0))
-    };
-    let (_input, objects) = extract_objects(input).context("Failed to extract KTest objects")?;
-
+pub fn parse_ktest(input: &[u8]) -> Result<KTest> {
+    let (_, (version, args, sym_argvs, sym_argv_len, num_objects, objects)) =
+        match parse_ktest_binary(input) {
+            Ok(res) => res,
+            Err(e) => {
+                return Err(anyhow!("Could not parse binary {:}", e));
+            }
+        };
     Ok(KTest {
         version,
         args,
         sym_argvs,
         sym_argv_len,
-        num_objects: objects.len() as u32,
+        num_objects,
         objects,
     })
+}
+
+fn parse_ktest_binary(input: &[u8]) -> IResult<&[u8], KTestTuple> {
+    let (input, (_magic, version, args)) =
+        tuple((magic_number, extract_be_u32, extract_arguments))(input)?;
+    let (input, (sym_argvs, sym_argv_len)) = if version > 2 {
+        extract_sym_args(input)?
+    } else {
+        (input, (0, 0))
+    };
+    let (input, objects) = extract_objects(input)?;
+    Ok((
+        input,
+        (
+            version,
+            args,
+            sym_argvs,
+            sym_argv_len,
+            objects.len() as u32,
+            objects,
+        ),
+    ))
 }
 
 /// Parses the KTest magic number.
