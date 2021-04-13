@@ -1,4 +1,6 @@
 # ktest-parser
+[![Crate](https://img.shields.io/crates/v/klee-rs)](https://crates.io/crates/klee-rs)
+[![Crate](https://img.shields.io/docsrs/ktest-parser)](https://docs.rs/ktest-parser)
 ktest-parser is a utility to parse `.ktest` binaries which is the output of KLEE, into a Rust friendly struct instead.
 
 ## KTest File Format Description
