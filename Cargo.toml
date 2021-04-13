@@ -8,7 +8,7 @@ categories = ["parser-implementations"]
 keywords = ["klee", "ktest"]
 readme = "README.md"
 repository = "https://github.com/markhakansson/ktest-parser"
-license = "BSD-3"
+license = "BSD-3-Clause"
 
 [dependencies]
 nom = "6.1"
