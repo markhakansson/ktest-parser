@@ -80,7 +80,7 @@ use serde::{Deserialize, Serialize};
 type KTestTuple = (u32, Vec<String>, u32, u32, u32, Vec<KTestObject>);
 
 /// Contains information about the generated test vector on a symbolic object.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct KTestObject {
     /// The name given to the symbolic object when calling `klee_make_symbolic`
     pub name: String,
@@ -91,7 +91,7 @@ pub struct KTestObject {
 }
 
 /// A representation of the KTest file format.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct KTest {
     /// KTest file format version
     pub version: u32,
